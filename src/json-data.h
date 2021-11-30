@@ -19,10 +19,11 @@ namespace json {
             try {
                 if(auto iter=mProps.find(key.data()); iter != std::end(mProps)) {
                     auto& optVal = iter->second;
-                    if(optVal.has_value())
+                    if(optVal.has_value()) {
 					    return std::any_cast<T>(optVal.value());
+                    }
                 } else {
-                    throw std::runtime_error("Cannot Find");
+                    throw std::runtime_error("Cannot find property");
                 }
             } catch (const std::bad_any_cast& e) { // getProp Error 
                 std::cerr << e.what() << std::endl;
@@ -41,7 +42,6 @@ namespace json {
         void setArr(std::string_view key, std::vector<T> arr) {
             set<std::vector<T>>(key, arr);
         }
-
     private:
         std::unordered_map<std::string, std::optional<std::any>> mProps;
     };
