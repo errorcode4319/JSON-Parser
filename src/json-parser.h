@@ -13,6 +13,7 @@
 #include <stdexcept>
 #include <optional>
 #include <stack>
+#include <functional>
 
 namespace json {
 
