@@ -3,7 +3,15 @@
 namespace json {
     
     namespace {
-        bool BracketSyntaxValid(std::string_view jstr);
+        using bracket = std::pair<char, std::string::iterator>;
+        using bracket_pair = std::pair<bracket,bracket>;
+        using bracket_list = std::vector<bracket_pair>;
+
+        std::tuple<bool, bracket_list> BracketSyntaxValid(std::string_view jstr);
+
+        std::optional<std::any> parseValue(std::string_view jstr);
+
+        Object parseObj(std::string_view jstr);
     }
 
     Object parseJSON(std::string_view jstr) {
@@ -31,8 +39,16 @@ namespace json {
         return ss.str();
     }
 
+
+
     namespace {
-        bool BracketSyntaxValid(std::string_view jstr) {
+        std::tuple<bool, bracket_list> BracketSyntaxValid(std::string_view jstr) {
+
+            bracket_list brkl;
+            auto brk_iter = std::begin(brkl);
+
+            if(jstr.front() != '{' || jstr.back() != '}')
+                return std::make_tuple(false, brkl); 
 
             std::stack<char> stk;
 
@@ -55,9 +71,21 @@ namespace json {
                 }
             }
             if(!stk.empty())
-                return false;
-            return true;
+                return std::make_tuple(false, brkl);
+            return std::make_tuple(true, brkl);
         }
+
+        std::optional<std::any> parseValue(std::string_view jstr) {
+            
+
+            return std::nullopt;
+        }
+
+        Object parseObj(std::string_view jstr) {
+            return Object();
+        }
+
+        
     }
 
 }
