@@ -4,26 +4,27 @@ namespace json {
     
     namespace {
 
-        using strIter = std::string_view::iterator;
-        using strItPair = std::pair<strIter, strIter>;
-        using bracket = std::pair<char, strIter>;
-        using bracket_pair = std::pair<bracket,bracket>;
-        using bracket_tree = std::map<strIter, bracket_pair>;
+        using strIter       = std::string_view::iterator;
+        using strItPair     = std::pair<strIter, strIter>;
+        using bracket       = std::pair<char, strIter>;
+        using bracket_pair  = std::pair<bracket,bracket>;
+        using bracket_tree  = std::map<strIter, bracket_pair>;
 
-        strItPair trimFull(std::string_view jstr);
+        strItPair trim(std::string_view jstr);
         strItPair trimFront(std::string_view jstr);
         strItPair trimBack(std::string_view jstr);
 
-        std::optional<bracket_tree> CreateBracketTree(std::string_view jstr);
+        std::optional<bracket_tree> CreateBracketTree(strItPair jstr);
 
-        std::optional<std::any> parseValue(std::string_view jstr);
+        std::optional<std::any> parseValue(strItPair jstr);
 
-        std::vector<std::any> parseArr(std::string_view jstr);
+        std::vector<std::any> parseArr(strItPair jstr);
 
-        Object parseObj(std::string_view jstr);
+        Object parseObj(strItPair jstr);
     }
 
-    Object parseJSON(std::string_view jstr) {
+    Object parseJSON(std::string_view raw) {
+        auto jstr = trim(raw);
         auto brTree = CreateBracketTree(jstr);
         if(brTree.has_value() == false) {
             throw std::runtime_error("Invalid JSON Data");
@@ -31,7 +32,7 @@ namespace json {
         
         Object obj;
 
-        //for(auto iter=std::begin(jstr), )
+        
 
         return obj;
     }
@@ -53,7 +54,7 @@ namespace json {
 
     namespace {
         
-        strItPair trimFull(std::string_view jstr) {
+        strItPair trim(std::string_view jstr) {
             auto begIter = std::cbegin(jstr);
             auto endIter = std::cend(jstr);
             while(*begIter == ' ' && begIter < endIter) begIter++;
@@ -73,22 +74,19 @@ namespace json {
             return std::make_pair(begIter, endIter);
         }
 
-        std::optional<bracket_tree> CreateBracketTree(std::string_view jstr) {
+        std::optional<bracket_tree> CreateBracketTree(strItPair jstr) {
 
             bracket_tree brTree;
 
-            if(jstr.front() != '{' || jstr.back() != '}')
-                return std::nullopt;
-
             std::stack<char> stk;
-
-            for(const auto& ch: jstr) {
+            auto[iter, end] = jstr;
+            for(auto[iter, end] = jstr; iter < end; iter++) {
+                char ch = *iter;
                 if(ch == '[' || ch == '{') stk.push(ch);
                 if(ch == '\"') {
                     if(stk.empty()) stk.push(ch);
                     else if(stk.top() == ch) stk.pop();
-                    else stk.push(ch);
-                    
+                    else stk.push(ch);   
                 }
                 if(ch == ']') {
                     if(stk.empty()) return std::nullopt;
@@ -106,20 +104,20 @@ namespace json {
             return brTree;
         }
 
-        std::optional<std::any> parseValue(std::string_view jstr) {
+        std::optional<std::any> parseValue(strItPair jstr) {
             
 
 
             return std::nullopt;
         }
 
-        std::vector<std::any> parseArr(std::string_view jstr) {
+        std::vector<std::any> parseArr(strItPair jstr) {
             std::vector<std::any> jarr;
 
             return jarr;
         }
 
-        Object parseObj(std::string_view jstr) {
+        Object parseObj(strItPair jstr) {
             return Object();
         }
 
