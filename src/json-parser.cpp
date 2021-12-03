@@ -9,6 +9,7 @@ namespace json {
         using bracket       = std::pair<char, strIter>;
         using bracket_pair  = std::pair<bracket,bracket>;
         using bracket_tree  = std::map<strIter, bracket_pair>;
+        using bracket_table = std::vector<bracket_pair>;
 
         strItPair trim(std::string_view jstr);
         strItPair trimFront(std::string_view jstr);
@@ -25,14 +26,14 @@ namespace json {
 
     Object parseJSON(std::string_view raw) {
         auto jstr = trim(raw);
-        auto brTree = CreateBracketTree(jstr);
-        if(brTree.has_value() == false) {
+        auto brTree_opt = CreateBracketTree(jstr);
+        if(brTree_opt.has_value() == false) {
             throw std::runtime_error("Invalid JSON Data");
         }
-        
+        auto brTree = brTree_opt.value();
         Object obj;
 
-        
+        std::stack<bracket> stk;
 
         return obj;
     }
@@ -78,24 +79,26 @@ namespace json {
 
             bracket_tree brTree;
 
-            std::stack<char> stk;
+            std::stack<bracket> stk;
             auto[iter, end] = jstr;
             for(auto[iter, end] = jstr; iter < end; iter++) {
                 char ch = *iter;
-                if(ch == '[' || ch == '{') stk.push(ch);
+                if(ch == '[' || ch == '{') {
+                    stk.emplace(ch, iter);
+                }
                 if(ch == '\"') {
-                    if(stk.empty()) stk.push(ch);
-                    else if(stk.top() == ch) stk.pop();
-                    else stk.push(ch);   
+                    if(stk.empty()) stk.emplace(ch, iter);
+                    else if(stk.top().first == ch) stk.pop();
+                    else stk.emplace(ch, iter);   
                 }
                 if(ch == ']') {
                     if(stk.empty()) return std::nullopt;
-                    else if(stk.top() != '[') return std::nullopt;
+                    else if(stk.top().first != '[') return std::nullopt;
                     else stk.pop();
                 }
                 if(ch == '}') {
                     if(stk.empty()) return std::nullopt;
-                    else if(stk.top() != '{') return std::nullopt;
+                    else if(stk.top().first != '{') return std::nullopt;
                     else stk.pop();
                 }
             }
