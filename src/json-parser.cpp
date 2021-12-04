@@ -79,9 +79,13 @@ namespace json {
         std::optional<bracket_tree> CreateBracketTree(strItPair jstr) {
 
             bracket_tree brTree;
-
+            bracket_table brTable;
+            
             std::stack<bracket> stk;
             auto[iter, end] = jstr;
+            int len = int(end - iter);
+            brTable.resize(len);
+
             for(auto[iter, end] = jstr; iter < end; iter++) {
                 char ch = *iter;
                 if(ch == '[' || ch == '{') {
