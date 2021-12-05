@@ -9,13 +9,14 @@ namespace json {
         using bracket       = std::pair<char, strIter>;
         using bracket_pair  = std::pair<bracket,bracket>;
         using bracket_tree  = std::map<strIter, bracket_pair>;
-        using bracket_table = std::vector<bracket_pair>;
+        //using bracket_table = std::vector<bracket_pair>;
+        using bracket_table = std::vector<size_t>; // store offset info 
 
         strItPair trim(std::string_view jstr);
         strItPair trimFront(std::string_view jstr);
         strItPair trimBack(std::string_view jstr);
 
-        std::optional<bracket_tree> CreateBracketTree(strItPair jstr);
+        std::optional<bracket_table> CreateBracketTree(strItPair jstr);
 
         std::optional<std::any> parseValue(strItPair jstr);
 
@@ -27,11 +28,11 @@ namespace json {
 
     Object parseJSON(std::string_view raw) {
         auto jstr = trim(raw);
-        auto brTree_opt = CreateBracketTree(jstr);
-        if(brTree_opt.has_value() == false) {
+        auto brTable_opt = CreateBracketTree(jstr);
+        if(brTable_opt.has_value() == false) {
             throw std::runtime_error("Invalid JSON Data");
         }
-        auto brTree = brTree_opt.value();
+        auto brTree = brTable_opt.value();
         Object obj;
 
         std::stack<bracket> stk;
@@ -76,17 +77,17 @@ namespace json {
             return std::make_pair(begIter, endIter);
         }
 
-        std::optional<bracket_tree> CreateBracketTree(strItPair jstr) {
+        std::optional<bracket_table> CreateBracketTree(strItPair jstr) {
 
             bracket_tree brTree;
             bracket_table brTable;
             
             std::stack<bracket> stk;
-            auto[iter, end] = jstr;
-            int len = int(end - iter);
+            auto[beg, end] = jstr;
+            size_t len = size_t(end - beg);
             brTable.resize(len);
 
-            for(auto[iter, end] = jstr; iter < end; iter++) {
+            for(auto iter=beg;iter<end;iter++) {
                 char ch = *iter;
                 if(ch == '[' || ch == '{') {
                     stk.emplace(ch, iter);
@@ -109,7 +110,7 @@ namespace json {
             }
             if(!stk.empty())
                 return std::nullopt;
-            return brTree;
+            return brTable;
         }
 
         std::optional<std::any> parseValue(strItPair jstr) {
